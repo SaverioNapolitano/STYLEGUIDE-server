@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">STYLEGUIDE - Home</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/consumption">Consumption</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title">Lights Status</h5>
+                    <ul class="list-group">
+                        {% for room, status in lights_status.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ room }} <span class="badge bg-info">{{ status }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title">People in Rooms</h5>
+                    <ul class="list-group">
+                        {% for room, count in people_in_rooms.items() %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ room }} <span class="badge bg-warning">{{ count }} people</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title">Most Used Light Colors</h5>
+                    <div id="color_usage_graph"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title">Correlation Between Power Consumption and Electricity Bill</h5>
+                    <div id="consumption_bill_correlation_graph"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var colorUsageGraph = {{ color_usage_graph|safe }};
+        Plotly.newPlot('color_usage_graph', colorUsageGraph.data, colorUsageGraph.layout);
+        
+        var consumptionBillGraph = {{ consumption_bill_correlation_graph|safe }};
+        Plotly.newPlot('consumption_bill_correlation_graph', consumptionBillGraph.data, consumptionBillGraph.layout);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
