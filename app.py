@@ -14,6 +14,7 @@ people_in_rooms = {room: random.randint(0, 4) for room in rooms}
 past_power_consumption = [random.uniform(50, 150) for _ in range(10)]
 future_power_consumption = [random.uniform(60, 140) for _ in range(10)]
 colors_usage = {'Blue': 35, 'Cool White': 20, 'Green': 15, 'Red': 10, 'Warm White': 5}
+light_usage_methods = {"Automatically": 50, "Voice": 20, "Switch": 15, "Mobile App": 15}
 
 # Simulated electricity bill data (assume price per kWh = 0.15)
 electricity_bill = [consumption * 0.15 for consumption in past_power_consumption]
@@ -57,6 +58,18 @@ def home():
         "layout": go.Layout(title='Most Used Light Colors')
     }
 
+    # Light usage methods pie chart 
+    light_usage_methods_graph = {
+        "data": [
+            go.Pie(
+                labels=list(light_usage_methods.keys()),
+                values=list(light_usage_methods.values()),
+                hole=.3
+            )
+        ],
+        "layout": go.Layout(title='Most Used Light On Methods')
+    }
+
     # Correlation between power consumption and electricity bill (continuous graph)
     consumption_bill_correlation_graph = {
         "data": [
@@ -89,7 +102,8 @@ def home():
         lights_status=lights_status,
         people_in_rooms=people_in_rooms,
         color_usage_graph=json.dumps(color_usage_graph, cls=plotly.utils.PlotlyJSONEncoder),
-        consumption_bill_correlation_graph=json.dumps(consumption_bill_correlation_graph, cls=plotly.utils.PlotlyJSONEncoder)
+        consumption_bill_correlation_graph=json.dumps(consumption_bill_correlation_graph, cls=plotly.utils.PlotlyJSONEncoder),
+        light_usage_methods_graph=json.dumps(light_usage_methods_graph, cls=plotly.utils.PlotlyJSONEncoder)
     )
 
 @app.route('/consumption')

@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">STYLEGUIDE - Home</a>
+            <a class="navbar-brand" href="#">Light Management - Home</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -63,6 +63,14 @@
                 </div>
             </div>
         </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card shadow-sm p-3">
+                    <h5 class="card-title">Light Usage Methods</h5>
+                    <div id="light_usage_methods_graph"></div>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         var colorUsageGraph = {{ color_usage_graph|safe }};
@@ -70,6 +78,9 @@
         
         var consumptionBillGraph = {{ consumption_bill_correlation_graph|safe }};
         Plotly.newPlot('consumption_bill_correlation_graph', consumptionBillGraph.data, consumptionBillGraph.layout);
+        
+        var lightUsageMethodsGraph = {{ light_usage_methods_graph|safe }};
+        Plotly.newPlot('light_usage_methods_graph', lightUsageMethodsGraph.data, lightUsageMethodsGraph.layout);
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
