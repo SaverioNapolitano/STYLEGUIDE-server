@@ -3,21 +3,47 @@ import random
 import plotly
 import plotly.graph_objs as go
 import json
+from database import *
+from flask_mqtt import Mqtt 
+from ai import compute_future_power_consumption
 
 app = Flask(__name__)
 
+#create_db()
+#TODO test MQTT
+#mqtt = Mqtt(app)
+
+#@mqtt.on_connect()
+def handle_connect(client, userdata, flags, rc):
+    mqtt.subscribe('home/+/people')
+    mqtt.subscribe('home/+/light')
+
+#@mqtt.on_message()
+def handle_mqtt_message(client, userdata, message):
+    data = dict(
+        topic=message.topic,
+        payload=message.payload.decode()
+    )
+    room = data['topic'].removeprefix('home/')
+    if 'people' in data['topic']:    
+        room = room.removesuffix('/people')
+        people_in_rooms[room] = data['payload']
+    else:
+        room = room.removesuffix('/light')
+        lights_status[room] = data['payload']
+
 # Sample data for demonstration
 rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom', 'Garage']
-lights_status = {room: random.choice(['On', 'Off']) for room in rooms}
-people_in_rooms = {room: random.randint(0, 4) for room in rooms}
+lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
+people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
 
-past_power_consumption = [random.uniform(50, 150) for _ in range(10)]
-future_power_consumption = [random.uniform(60, 140) for _ in range(10)]
-colors_usage = {'Blue': 35, 'Cool White': 20, 'Green': 15, 'Red': 10, 'Warm White': 5}
-light_usage_methods = {"Automatically": 50, "Voice": 20, "Switch": 15, "Mobile App": 15}
+past_power_consumption = compute_past_power_consumption()
+future_power_consumption = compute_future_power_consumption() # FBProphet / AI
+colors_usage = compute_colors_usage()
+light_usage_methods = compute_light_usage_methods()
 
 # Simulated electricity bill data (assume price per kWh = 0.15)
-electricity_bill = [consumption * 0.15 for consumption in past_power_consumption]
+electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
 
 # Custom tips based on usage
 room_usage = {
@@ -81,8 +107,8 @@ def home():
                 line=dict(color='blue')
             ),
             go.Scatter(
-                x=list(range(10)),
-                y=past_power_consumption,
+                x=list(past_power_consumption.keys()),
+                y=list(past_power_consumption.values()),
                 mode='lines+markers',
                 name='Power Consumption',
                 line=dict(color='green')
@@ -112,8 +138,8 @@ def consumption():
     past_power_consumption_graph = {
         "data": [
             go.Scatter(
-                x=list(range(10)),
-                y=past_power_consumption,
+                x=list(past_power_consumption.keys()),
+                y=list(past_power_consumption.values()),
                 mode='lines+markers',
                 name='Past Consumption'
             )
@@ -129,8 +155,8 @@ def consumption():
     future_power_consumption_graph = {
         "data": [
             go.Scatter(
-                x=list(range(10)),
-                y=future_power_consumption,
+                x=list(future_power_consumption.keys()),
+                y=list(future_power_consumption.values()),
                 mode='lines+markers',
                 name='Future Consumption'
             )

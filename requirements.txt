@@ -1,3 +1,7 @@
 flask
 plotly
-gunicorn
+sqlalchemy
+psycopg2
+flask-mqtt
+pandas 
+prophet
