@@ -9,7 +9,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Energy Saver Ranking</a>
+            <a class="navbar-brand" href="#">STYLEGUIDE - Ranking</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -32,7 +32,7 @@
                             <tr>
                                 <th>Rank</th>
                                 <th>Name</th>
-                                <th>Energy Saved (kWh)</th>
+                                <th>Power Used (kWh)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,7 +40,7 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td>{{ person.name }}</td>
-                                <td>{{ person.energy_saved }}</td>
+                                <td>{{ person.power_used }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

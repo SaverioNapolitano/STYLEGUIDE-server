@@ -2,9 +2,10 @@ import pandas as pd
 from prophet import Prophet 
 from database import engine
 
-def compute_future_power_consumption():
+def compute_future_power_consumption(username: str):
     with engine.connect() as conn, conn.begin():
         data = pd.read_sql_table('data', conn)
+        data = data[data.username == 'Saverio']
         prophet_df = data.loc[:, ['timestamp', 'power_consumption']]
 
     m = Prophet()

@@ -38,10 +38,10 @@ rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom']
 lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
 people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
 
-past_power_consumption = compute_past_power_consumption()
-future_power_consumption = compute_future_power_consumption() # FBProphet / AI
-colors_usage = compute_colors_usage()
-light_usage_methods = compute_light_usage_methods()
+past_power_consumption = compute_past_power_consumption('Saverio')
+future_power_consumption = compute_future_power_consumption('Saverio') # FBProphet / AI
+colors_usage = compute_colors_usage('Saverio')
+light_usage_methods = compute_light_usage_methods('Saverio')
 
 # Simulated electricity bill data (assume price per kWh = 0.15)
 electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
@@ -100,7 +100,7 @@ def home():
     consumption_bill_correlation_graph = {
         "data": [
             go.Scatter(
-                x=list(range(10)),
+                x=list(past_power_consumption.keys()),
                 y=electricity_bill,
                 mode='lines+markers',
                 name='Electricity Bill',
@@ -194,11 +194,7 @@ def consumption():
 
 @app.route('/ranking')
 def ranking():
-    ranking_data = [
-        {"name": "Roberta", "power_used": 95},
-        {"name": "Cristina", "power_used": 110},
-        {"name": "Saverio", "power_used": 120},
-    ]
+    ranking_data = compute_rankings()
     return render_template('ranking.html', ranking=ranking_data)
 
 if __name__ == '__main__':

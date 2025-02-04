@@ -2,6 +2,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import *
 import datetime
 from sqlalchemy import select 
+from operator import itemgetter
 
 engine = create_engine("sqlite:///database.sqlite", echo=True)
 
@@ -14,6 +15,7 @@ class Data(Base):
     __tablename__ = 'data'
 
     timestamp: Mapped[datetime.datetime] = mapped_column(primary_key=True)
+    username: Mapped[str]
     duration: Mapped[float]
     on_mode: Mapped[str]
     off_mode: Mapped[str]
@@ -26,39 +28,44 @@ def create_db():
     Base.metadata.create_all(engine)
 
 
-def populate_db():
-    pass 
+def compute_rankings():
+    with Session() as session:
+        users_consumptions_tuples = session.execute(select(Data.username, func.sum(Data.power_consumption)).group_by(Data.username)).all()
+        users_consumptions_dict = {data[0] : data[1] for data in users_consumptions_tuples}
+        users_consumptions_dict_list = [{'name': key, 'power_used':value} for key, value in users_consumptions_dict.items()]
+        return sorted(users_consumptions_dict_list, key=itemgetter('power_used'))
 
 def add_data():
     pass
 
-def compute_past_power_consumption():
+def compute_past_power_consumption(username: str):
     with Session() as session:
-        past_power_consumption_tuples = session.execute(select(Data.timestamp, Data.power_consumption)).all()
+        past_power_consumption_tuples = session.execute(select(Data.timestamp, Data.power_consumption).filter(Data.username == username)).all()
         past_power_consumption_dict = {data[0] : data[1] for data in past_power_consumption_tuples}
+        
         return past_power_consumption_dict
 
-def compute_colors_usage():
+def compute_colors_usage(username: str):
     with Session() as session:
         colors_usage = {}
-        colors_usage['White'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'white'))
-        colors_usage['Red'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'red'))
-        colors_usage['Green'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'green'))
-        colors_usage['Blue'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'blue'))
-        colors_usage['Yellow'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'yellow'))
-        colors_usage['Pink'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'pink'))
-        colors_usage['Purple'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'purple'))
-        colors_usage['Orange'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'orange'))
+        colors_usage['White'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'white').filter(Data.username == username))
+        colors_usage['Red'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'red').filter(Data.username == username))
+        colors_usage['Green'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'green').filter(Data.username == username))
+        colors_usage['Blue'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'blue').filter(Data.username == username))
+        colors_usage['Yellow'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'yellow').filter(Data.username == username))
+        colors_usage['Pink'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'pink').filter(Data.username == username))
+        colors_usage['Purple'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'purple').filter(Data.username == username))
+        colors_usage['Orange'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.color == 'orange').filter(Data.username == username))
         colors_usage = {key : value for key, value in colors_usage.items() if value > 0}
         return colors_usage
 
-def compute_light_usage_methods():
+def compute_light_usage_methods(username: str):
     with Session() as session:
         light_usage_methods = {}
-        light_usage_methods['Auto'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'auto'))
-        light_usage_methods['Switch'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'switch'))
-        light_usage_methods['Voice'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'voice'))
-        light_usage_methods['Mobile App'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'user'))
+        light_usage_methods['Auto'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'auto').filter(Data.username == username))
+        light_usage_methods['Switch'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'switch').filter(Data.username == username))
+        light_usage_methods['Voice'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'voice').filter(Data.username == username))
+        light_usage_methods['Mobile App'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'mobile app').filter(Data.username == username))
         light_usage_methods = {key : value for key, value in light_usage_methods.items() if value > 0}
         return light_usage_methods
 
@@ -68,6 +75,7 @@ def compute_light_usage_methods():
 def main():
     #create_db()
     #print(compute_past_power_consumption())
-    print(compute_colors_usage())
+    #print(compute_colors_usage())
+    print(compute_rankings())
 
 main()
