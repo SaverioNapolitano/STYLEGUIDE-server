@@ -17,6 +17,7 @@ app = Flask(__name__)
 def handle_connect(client, userdata, flags, rc):
     mqtt.subscribe('home/+/people')
     mqtt.subscribe('home/+/light')
+    #mqtt.subscribe('home/#')
 
 #@mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
@@ -33,7 +34,7 @@ def handle_mqtt_message(client, userdata, message):
         lights_status[room] = data['payload']
 
 # Sample data for demonstration
-rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom', 'Garage']
+rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom']
 lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
 people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
 
@@ -50,8 +51,7 @@ room_usage = {
     'Living Room': {'usage': 8, 'lights': 'On'},
     'Kitchen': {'usage': 5, 'lights': 'Off'},
     'Bedroom': {'usage': 10, 'lights': 'On'},
-    'Bathroom': {'usage': 3, 'lights': 'Off'},
-    'Garage': {'usage': 2, 'lights': 'Off'}
+    'Bathroom': {'usage': 3, 'lights': 'Off'}
 }
 
 def generate_custom_tips(room_usage):
@@ -191,6 +191,15 @@ def consumption():
         future_power_consumption_graph=json.dumps(future_power_consumption_graph, cls=plotly.utils.PlotlyJSONEncoder),
         energy_savings_graph=json.dumps(energy_savings_graph, cls=plotly.utils.PlotlyJSONEncoder)
     )
+
+@app.route('/ranking')
+def ranking():
+    ranking_data = [
+        {"name": "Roberta", "power_used": 95},
+        {"name": "Cristina", "power_used": 110},
+        {"name": "Saverio", "power_used": 120},
+    ]
+    return render_template('ranking.html', ranking=ranking_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
