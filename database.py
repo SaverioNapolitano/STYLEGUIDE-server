@@ -24,6 +24,17 @@ class Data(Base):
     light_intensity: Mapped[int]
     power_consumption: Mapped[float]
 
+    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, color_mode: str, light_intensity: int, power_consumption: float):
+        self.timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        self.username = str(username)
+        self.duration = float(duration)
+        self.on_mode = str(on_mode)
+        self.off_mode = str(off_mode)
+        self.color = str(color)
+        self.color_mode = str(color_mode)
+        self.light_intensity = int(light_intensity)
+        self.power_consumption = float(power_consumption)
+
 def create_db():
     Base.metadata.create_all(engine)
 
@@ -35,7 +46,7 @@ def compute_rankings():
         users_consumptions_dict_list = [{'name': key, 'power_used':value} for key, value in users_consumptions_dict.items()]
         return sorted(users_consumptions_dict_list, key=itemgetter('power_used'))
 
-def add_data():
+def add_data(db_row: Data):
     pass
 
 def compute_past_power_consumption(username: str):

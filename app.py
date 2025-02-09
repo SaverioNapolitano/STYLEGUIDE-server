@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 import random
 import plotly
 import plotly.graph_objs as go
@@ -6,20 +6,23 @@ import json
 from database import *
 from flask_mqtt import Mqtt 
 from ai import compute_future_power_consumption
+from config import Config
 
 app = Flask(__name__)
 
 #create_db()
 #TODO test MQTT
-#mqtt = Mqtt(app)
+mqtt = Mqtt(app)
 
-#@mqtt.on_connect()
+app.config.from_object(Config)
+
+@mqtt.on_connect()
 def handle_connect(client, userdata, flags, rc):
     mqtt.subscribe('home/+/people')
     mqtt.subscribe('home/+/light')
     #mqtt.subscribe('home/#')
 
-#@mqtt.on_message()
+@mqtt.on_message()
 def handle_mqtt_message(client, userdata, message):
     data = dict(
         topic=message.topic,
@@ -27,24 +30,18 @@ def handle_mqtt_message(client, userdata, message):
     )
     room = data['topic'].removeprefix('home/')
     if 'people' in data['topic']:    
-        room = room.removesuffix('/people')
-        people_in_rooms[room] = data['payload']
+        room = room.removesuffix('/people').capitalize()
+        if room == 'Livingroom':
+            room = 'Living Room'
+        people_in_rooms[room] = data['payload'].capitalize()
     else:
-        room = room.removesuffix('/light')
-        lights_status[room] = data['payload']
+        room = room.removesuffix('/light').capitalize()
+        if room == 'Livingroom':
+            room = 'Living Room'
+        lights_status[room] = data['payload'].capitalize()
 
 # Sample data for demonstration
 rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom']
-lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
-people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
-
-past_power_consumption = compute_past_power_consumption('Saverio')
-future_power_consumption = compute_future_power_consumption('Saverio') # FBProphet / AI
-colors_usage = compute_colors_usage('Saverio')
-light_usage_methods = compute_light_usage_methods('Saverio')
-
-# Simulated electricity bill data (assume price per kWh = 0.15)
-electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
 
 # Custom tips based on usage
 room_usage = {
@@ -53,6 +50,9 @@ room_usage = {
     'Bedroom': {'usage': 10, 'lights': 'On'},
     'Bathroom': {'usage': 3, 'lights': 'Off'}
 }
+
+lights_status = {room: 'Off' for room in rooms} # MQTT
+people_in_rooms = {room: 0 for room in rooms} # MQTT
 
 def generate_custom_tips(room_usage):
     tips = []
@@ -68,11 +68,13 @@ def generate_custom_tips(room_usage):
             tips.append(f"In the {room}, energy usage is higher despite lights being off. Check for other appliances.")
     return tips, energy_savings
 
-tips_to_reduce_power, energy_savings_data = generate_custom_tips(room_usage)
-
 @app.route('/')
 def home():
+    #lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
+    #people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
+    
     # Light color usage pie chart
+    colors_usage = compute_colors_usage('Saverio')
     color_usage_graph = {
         "data": [
             go.Pie(
@@ -85,6 +87,7 @@ def home():
     }
 
     # Light usage methods pie chart 
+    light_usage_methods = compute_light_usage_methods('Saverio')
     light_usage_methods_graph = {
         "data": [
             go.Pie(
@@ -97,6 +100,9 @@ def home():
     }
 
     # Correlation between power consumption and electricity bill (continuous graph)
+    past_power_consumption = compute_past_power_consumption('Saverio')
+    # Simulated electricity bill data (assume price per kWh = 0.15)
+    electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
     consumption_bill_correlation_graph = {
         "data": [
             go.Scatter(
@@ -135,6 +141,7 @@ def home():
 @app.route('/consumption')
 def consumption():
     # Past power consumption graph
+    past_power_consumption = compute_past_power_consumption('Saverio')
     past_power_consumption_graph = {
         "data": [
             go.Scatter(
@@ -152,6 +159,7 @@ def consumption():
     }
 
     # Future power consumption graph
+    future_power_consumption = compute_future_power_consumption('Saverio') # FBProphet / AI
     future_power_consumption_graph = {
         "data": [
             go.Scatter(
@@ -169,6 +177,7 @@ def consumption():
     }
 
     # Energy savings graph
+    tips_to_reduce_power, energy_savings_data = generate_custom_tips(room_usage)
     energy_savings_graph = {
         "data": [
             go.Bar(
@@ -197,5 +206,46 @@ def ranking():
     ranking_data = compute_rankings()
     return render_template('ranking.html', ranking=ranking_data)
 
+@app.route('/bridge', methods = ['POST'])
+def post_bridge():
+    request_json = request.get_json()
+    db_row = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['color mode'], request_json['light intensity'], request_json['power consumption'])
+    add_data(db_row)
+    print('add row to db')
+    return 'OK', '200 OK'
+
+@app.route('/colors')
+def send_app_colors():
+    return jsonify(compute_colors_usage('Saverio'))
+
+@app.route('/lights')
+def send_app_lights():
+    return jsonify(compute_light_usage_methods('Saverio'))
+
+@app.route('/cost')
+def send_app_power():
+    past_power_consumption = compute_past_power_consumption('Saverio')
+    electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
+    return jsonify(electricity_bill)
+
+@app.route('/rank')
+def send_app_ranking():
+    ranking_data = compute_rankings()
+    ranking_dict = {}
+    for item in ranking_data:
+        for key, value in item:
+            ranking_dict[key] = value 
+    return jsonify(ranking_dict)
+
+
+@app.route('/past')
+def send_app_past():
+    return jsonify(compute_past_power_consumption('Saverio')) 
+
+@app.route('/future')
+def send_app_future():
+    return jsonify(compute_future_power_consumption('Saverio'))
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
