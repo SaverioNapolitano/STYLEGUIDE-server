@@ -11,7 +11,7 @@ from config import Config
 app = Flask(__name__)
 
 #create_db()
-#TODO test MQTT
+
 mqtt = Mqtt(app)
 
 app.config.from_object(Config)
