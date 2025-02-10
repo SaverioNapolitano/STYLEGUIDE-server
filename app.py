@@ -225,7 +225,8 @@ def send_app_lights():
 @app.route('/cost')
 def send_app_power():
     past_power_consumption = compute_past_power_consumption('Saverio')
-    electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
+    #electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
+    electricity_bill = {str(key): 0.15*value for key, value in past_power_consumption.items()}
     return jsonify(electricity_bill)
 
 @app.route('/rank')
@@ -240,12 +241,14 @@ def send_app_ranking():
 
 @app.route('/past')
 def send_app_past():
-    return jsonify(compute_past_power_consumption('Saverio')) 
+    past_power_consumption = {str(key): value for key, value in compute_past_power_consumption('Saverio').items()}
+    return jsonify(past_power_consumption) 
 
 @app.route('/future')
 def send_app_future():
-    return jsonify(compute_future_power_consumption('Saverio'))
+    future_power_consumption = {str(key): value for key, value in compute_future_power_consumption('Saverio').items()}
+    return jsonify(future_power_consumption)
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host=app.config.get('FLASK_RUN_HOST', 'localhost'), port=app.config.get('FLASK_RUN_PORT', 8000))

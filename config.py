@@ -10,7 +10,7 @@ class Config:
 
     APPLICATION_ROOT = '/'
 
-    FLASK_APP = 'server.py'
+    FLASK_APP = 'app.py'
     FLASK_RUN_HOST = '0.0.0.0'
     FLASK_RUN_PORT = 80
 
