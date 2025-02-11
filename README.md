@@ -17,9 +17,27 @@ The server makes this data available to a machine learning client that will outp
 > [!NOTE]
 > For the sake of simplicity, in this case both the MQTT and the HTTP clients are integrated with the rest server, but it's possible for potentially any client to connect to the server. 
 
+The web interface embeds both the MQTT client info and the HTTP client info. 
+
 ### MQTT Client 
 
 See [here](https://github.com/SaverioNapolitano/STYLEGUIDE-bridge?tab=readme-ov-file#bridge---mobile-app-generic-client)
 
 ### HTTP Client 
 
+It asks the server for refined data, including:
+- which colors are the most used 
+- which methods to turn on the lights are the most used
+- the correlation between the power consumption and the electricity bill 
+- the past power consumption 
+- the future power consumption (AI-based)
+- energy saving tips and a numerical estimate of those savings (AI-based)
+- the energy savers ranking to see how good one's doing with respect to its neighbours 
+
+## Further improvements 
+
+- [ ] Consider both the methods to turn on the lights and the methods to turn them off in the estimate 
+- [ ] Implement the AI-based solution for energy saving tips and numerical estimate 
+- [ ] Enhance ranking and gamification features
+
+ 
