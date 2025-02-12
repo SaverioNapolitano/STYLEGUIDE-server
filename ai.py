@@ -11,7 +11,7 @@ def compute_future_power_consumption(username: str):
     m = Prophet()
     m.fit(prophet_df.rename(columns={'timestamp': 'ds', 'power_consumption': 'y'}))
 
-    future = m.make_future_dataframe(periods=365)
+    future = m.make_future_dataframe(periods=30)
 
     forecast = m.predict(future)
     dict_keys = [data for data in (forecast[['ds', 'yhat']].to_dict())['ds'].values()]

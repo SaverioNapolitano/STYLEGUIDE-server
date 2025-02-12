@@ -209,7 +209,7 @@ def ranking():
 @app.route('/bridge', methods = ['POST'])
 def post_bridge():
     request_json = request.get_json()
-    db_row = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['color mode'], request_json['light intensity'], request_json['power consumption'])
+    db_row = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
     add_data(db_row)
     print('add row to db')
     return 'OK', '200 OK'
@@ -248,6 +248,7 @@ def send_app_past():
 def send_app_future():
     future_power_consumption = {str(key): value for key, value in compute_future_power_consumption('Saverio').items()}
     return jsonify(future_power_consumption)
+
 
 
 if __name__ == '__main__':

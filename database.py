@@ -20,18 +20,16 @@ class Data(Base):
     on_mode: Mapped[str]
     off_mode: Mapped[str]
     color: Mapped[str]
-    color_mode: Mapped[str]
     light_intensity: Mapped[int]
     power_consumption: Mapped[float]
 
-    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, color_mode: str, light_intensity: int, power_consumption: float):
+    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, light_intensity: int, power_consumption: float):
         self.timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
         self.username = str(username)
         self.duration = float(duration)
         self.on_mode = str(on_mode)
         self.off_mode = str(off_mode)
         self.color = str(color)
-        self.color_mode = str(color_mode)
         self.light_intensity = int(light_intensity)
         self.power_consumption = float(power_consumption)
 
@@ -79,14 +77,3 @@ def compute_light_usage_methods(username: str):
         light_usage_methods['Mobile App'] = session.scalar(select(func.count(Data.timestamp)).filter(Data.on_mode == 'mobile app').filter(Data.username == username))
         light_usage_methods = {key : value for key, value in light_usage_methods.items() if value > 0}
         return light_usage_methods
-
-        
-
-
-def main():
-    #create_db()
-    #print(compute_past_power_consumption())
-    #print(compute_colors_usage())
-    print(compute_rankings())
-
-main()
