@@ -33,6 +33,24 @@ class Data(Base):
         self.light_intensity = str(light_intensity)
         self.power_consumption = float(power_consumption)
 
+class State(Base):
+    __tablename__ = 'current state'
+
+    timestamp: Mapped[datetime.datetime] = mapped_column(primary_key=True)
+    room: Mapped[str]
+    color: Mapped[str]
+    light_intensity: Mapped[str]
+    people_in_the_room: Mapped[int]
+
+    def __init__(self, timestamp: str, room: str, color: str, light_intensity: str, people_in_the_room: int):
+        self.timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        self.room = str(room)
+        self.color = str(color)
+        self.light_intensity = str(light_intensity)
+        self.people_in_the_room = int(people_in_the_room)
+
+
+
 def create_db():
     Base.metadata.create_all(engine)
 
@@ -47,8 +65,11 @@ def compute_rankings(user: bool):
         index = users_consumptions_dict_list_ordered.index({'name': 'Saverio', 'power_used': value})
         return index + 1, users_consumptions_dict_list_ordered[index] if user is True else users_consumptions_dict_list_ordered
 
-def add_data(db_row: Data):
-    pass
+def add_row(db_row): #TODO
+    if isinstance(db_row, Data):
+        pass 
+    else:
+        pass
 
 def compute_past_power_consumption(username: str):
     with Session() as session:

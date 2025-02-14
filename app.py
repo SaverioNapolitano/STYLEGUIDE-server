@@ -207,18 +207,26 @@ def ranking():
     return render_template('ranking.html', ranking=[user_ranking_data], i=index)
 
 @app.route('/admin')
-def admin():
+def admin_ranking():
     index, full_ranking_data = compute_rankings(user=False)
     return render_template('admin.html', ranking=full_ranking_data)
+
+@app.route('/bridge/packet', methods = ['POST'])
+def bridge_packet():
+    request_json = request.get_json()
+    data = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
+    add_row(data)
+    #print('add row to db')
+    return 'OK', '200 OK'
+
+@app.route('/bridge/state', methods = ['PUT'])
+def bridge_state():
+    request_json = request.get_json()
+    state = State(request_json['timestamp'], request_json['room'], request_json['color'], request_json['light intensity'], request_json['people in the room'])
+    add_row(state)
+    return 'OK', '200 OK'
     
 
-@app.route('/bridge', methods = ['POST'])
-def post_bridge():
-    request_json = request.get_json()
-    db_row = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
-    add_data(db_row)
-    print('add row to db')
-    return 'OK', '200 OK'
 
 @app.route('/colors')
 def send_app_colors():
