@@ -203,8 +203,14 @@ def consumption():
 
 @app.route('/ranking')
 def ranking():
-    ranking_data = compute_rankings()
-    return render_template('ranking.html', ranking=ranking_data)
+    index, user_ranking_data = compute_rankings(user=True)
+    return render_template('ranking.html', ranking=[user_ranking_data], i=index)
+
+@app.route('/admin')
+def admin():
+    index, full_ranking_data = compute_rankings(user=False)
+    return render_template('admin.html', ranking=full_ranking_data)
+    
 
 @app.route('/bridge', methods = ['POST'])
 def post_bridge():
@@ -225,19 +231,8 @@ def send_app_lights():
 @app.route('/cost')
 def send_app_power():
     past_power_consumption = compute_past_power_consumption('Saverio')
-    #electricity_bill = [consumption * 0.15 for consumption in past_power_consumption.values()]
     electricity_bill = {str(key): 0.15*value for key, value in past_power_consumption.items()}
     return jsonify(electricity_bill)
-
-@app.route('/rank')
-def send_app_ranking():
-    ranking_data = compute_rankings()
-    ranking_dict = {}
-    for item in ranking_data:
-        for key, value in item:
-            ranking_dict[key] = value 
-    return jsonify(ranking_dict)
-
 
 @app.route('/past')
 def send_app_past():

@@ -20,29 +20,32 @@ class Data(Base):
     on_mode: Mapped[str]
     off_mode: Mapped[str]
     color: Mapped[str]
-    light_intensity: Mapped[int]
+    light_intensity: Mapped[str]
     power_consumption: Mapped[float]
 
-    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, light_intensity: int, power_consumption: float):
+    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, light_intensity: str, power_consumption: float):
         self.timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
         self.username = str(username)
         self.duration = float(duration)
         self.on_mode = str(on_mode)
         self.off_mode = str(off_mode)
         self.color = str(color)
-        self.light_intensity = int(light_intensity)
+        self.light_intensity = str(light_intensity)
         self.power_consumption = float(power_consumption)
 
 def create_db():
     Base.metadata.create_all(engine)
 
 
-def compute_rankings():
+def compute_rankings(user: bool):
     with Session() as session:
         users_consumptions_tuples = session.execute(select(Data.username, func.sum(Data.power_consumption)).group_by(Data.username)).all()
         users_consumptions_dict = {data[0] : data[1] for data in users_consumptions_tuples}
+        value = users_consumptions_dict['Saverio']
         users_consumptions_dict_list = [{'name': key, 'power_used':value} for key, value in users_consumptions_dict.items()]
-        return sorted(users_consumptions_dict_list, key=itemgetter('power_used'))
+        users_consumptions_dict_list_ordered = sorted(users_consumptions_dict_list, key=itemgetter('power_used'))
+        index = users_consumptions_dict_list_ordered.index({'name': 'Saverio', 'power_used': value})
+        return index + 1, users_consumptions_dict_list_ordered[index] if user is True else users_consumptions_dict_list_ordered
 
 def add_data(db_row: Data):
     pass
