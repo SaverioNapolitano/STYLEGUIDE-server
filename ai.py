@@ -13,8 +13,10 @@ def compute_future_power_consumption(username: str):
 
     future = m.make_future_dataframe(periods=30)
 
-    forecast = m.predict(future)
+    forecast = m.predict(future).tail()
     dict_keys = [data for data in (forecast[['ds', 'yhat']].to_dict())['ds'].values()]
     dict_values = [data for data in (forecast[['ds', 'yhat']].to_dict())['yhat'].values()]
+
+    future_power_consumption = {key: value for key, value in zip(dict_keys, dict_values)}
     
-    return {key: value for key, value in zip(dict_keys, dict_values)}
+    return dict(sorted(future_power_consumption.items()))

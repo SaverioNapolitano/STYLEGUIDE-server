@@ -4,41 +4,12 @@ import plotly
 import plotly.graph_objs as go
 import json
 from database import *
-from flask_mqtt import Mqtt 
 from ai import compute_future_power_consumption
 from config import Config
 
 app = Flask(__name__)
 
-#create_db()
-
-mqtt = Mqtt(app)
-
 app.config.from_object(Config)
-
-@mqtt.on_connect()
-def handle_connect(client, userdata, flags, rc):
-    mqtt.subscribe('home/+/people')
-    mqtt.subscribe('home/+/light')
-    #mqtt.subscribe('home/#')
-
-@mqtt.on_message()
-def handle_mqtt_message(client, userdata, message):
-    data = dict(
-        topic=message.topic,
-        payload=message.payload.decode()
-    )
-    room = data['topic'].removeprefix('home/')
-    if 'people' in data['topic']:    
-        room = room.removesuffix('/people').capitalize()
-        if room == 'Livingroom':
-            room = 'Living Room'
-        people_in_rooms[room] = data['payload'].capitalize()
-    else:
-        room = room.removesuffix('/light').capitalize()
-        if room == 'Livingroom':
-            room = 'Living Room'
-        lights_status[room] = data['payload'].capitalize()
 
 # Sample data for demonstration
 rooms = ['Living Room', 'Kitchen', 'Bedroom', 'Bathroom']
@@ -51,8 +22,8 @@ room_usage = {
     'Bathroom': {'usage': 3, 'lights': 'Off'}
 }
 
-lights_status = {room: 'Off' for room in rooms} # MQTT
-people_in_rooms = {room: 0 for room in rooms} # MQTT
+lights_status = {room: 'Off' for room in rooms}
+people_in_rooms = {room: 0 for room in rooms} 
 
 def generate_custom_tips(room_usage):
     tips = []
@@ -70,8 +41,11 @@ def generate_custom_tips(room_usage):
 
 @app.route('/')
 def home():
-    #lights_status = {room: random.choice(['On', 'Off']) for room in rooms} # MQTT
-    #people_in_rooms = {room: random.randint(0, 4) for room in rooms} # MQTT
+
+    state = get_current_state()
+    lights_status = {room: (f'{state["color"].capitalize()} {state["light intensity"].capitalize()}' if room == state['room'] and state['color'] != 'none' else 'Off')  for room in rooms }
+    people_in_rooms = {room: (state['people in the room'] if room == state['room'] else 0)  for room in rooms }
+    
     
     # Light color usage pie chart
     colors_usage = compute_colors_usage('Saverio')
@@ -80,7 +54,9 @@ def home():
             go.Pie(
                 labels=list(colors_usage.keys()),
                 values=list(colors_usage.values()),
-                hole=.3
+                hole=.3,
+                marker = dict(colors=[key.lower() for key in colors_usage.keys()], line=dict(color='#444444', width=1)),
+
             )
         ],
         "layout": go.Layout(title='Most Used Light Colors')
@@ -93,7 +69,8 @@ def home():
             go.Pie(
                 labels=list(light_usage_methods.keys()),
                 values=list(light_usage_methods.values()),
-                hole=.3
+                hole=.3,
+                marker = dict(line=dict(color='#444444', width=1)),
             )
         ],
         "layout": go.Layout(title='Most Used Light On Methods')
@@ -216,17 +193,18 @@ def bridge_packet():
     request_json = request.get_json()
     data = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
     add_row(data)
-    #print('add row to db')
     return 'OK', '200 OK'
 
-@app.route('/bridge/state', methods = ['PUT'])
+@app.route('/bridge/state', methods = ['POST'])
 def bridge_state():
     request_json = request.get_json()
-    state = State(request_json['timestamp'], request_json['room'], request_json['color'], request_json['light intensity'], request_json['people in the room'])
+    state = State(request_json['timestamp'], request_json['room'], request_json['color'], request_json['light intensity'], request_json['people in the room'], request_json['auto mode'])
     add_row(state)
     return 'OK', '200 OK'
-    
 
+@app.route('/state')
+def send_app_state():
+    return jsonify(get_current_state())
 
 @app.route('/colors')
 def send_app_colors():
