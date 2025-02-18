@@ -17,6 +17,7 @@ class Data(Base):
 
     timestamp: Mapped[datetime] = mapped_column(primary_key=True)
     username: Mapped[str]
+    room: Mapped[str]
     duration: Mapped[float]
     on_mode: Mapped[str]
     off_mode: Mapped[str]
@@ -24,9 +25,10 @@ class Data(Base):
     light_intensity: Mapped[str]
     power_consumption: Mapped[float]
 
-    def __init__(self, timestamp: str, username: str, duration: float, on_mode: str, off_mode: str, color: str, light_intensity: str, power_consumption: float):
+    def __init__(self, timestamp: str, username: str, room: str, duration: float, on_mode: str, off_mode: str, color: str, light_intensity: str, power_consumption: float):
         self.timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
         self.username = str(username)
+        self.room = str(room)
         self.duration = float(duration)
         self.on_mode = str(on_mode)
         self.off_mode = str(off_mode)
@@ -38,14 +40,16 @@ class State(Base):
     __tablename__ = 'current_state'
 
     timestamp: Mapped[datetime] = mapped_column(primary_key=True)
+    username: Mapped[str]
     room: Mapped[str]
     color: Mapped[str]
     light_intensity: Mapped[str]
     people_in_the_room: Mapped[int]
     auto_mode: Mapped[str]
 
-    def __init__(self, timestamp: str, room: str, color: str, light_intensity: str, people_in_the_room: int, auto_mode: str):
+    def __init__(self, timestamp: str, username: str, room: str, color: str, light_intensity: str, people_in_the_room: int, auto_mode: str):
         self.timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        self.username = str(username)
         self.room = str(room)
         self.color = str(color)
         self.light_intensity = str(light_intensity)
@@ -62,15 +66,16 @@ def populate_db():
         for i in range(1000):
             price = 0.15
             timestamp = str(gen_datetime())
-            username = random.choice(['Cristina', 'Roberta', 'Matteo', 'Giada', 'Eleonora', 'Sabrina', 'Alice', 'Franco', 'Filippo', 'Silvio'])
+            username = random.choice(['Cristina', 'Roberta', 'Matteo', 'Giada', 'Eleonora', 'Sabrina', 'Alice', 'Franco', 'Filippo', 'Silvio', 'Teresa', 'Saverio'])
+            room = random.choice(['Living Room', 'Bathroom', 'Bedroom', 'Kitchen'])
             duration = random.randint(1, 100)
-            on_mode = random.choice(['auto', 'switch', 'voice', 'mobile App'])
-            off_mode = random.choice(['auto', 'switch', 'voice', 'mobile App'])
+            on_mode = random.choice(['auto', 'switch', 'voice', 'mobile app'])
+            off_mode = random.choice(['auto', 'switch', 'voice', 'mobile app'])
             color = random.choice(['white', 'red', 'green', 'blue', 'yellow', 'pink', 'purple', 'orange'])
             light_intensity = random.choice(['low', 'medium', 'high'])
             power_consumption = price * duration 
 
-            data = Data(timestamp, username, duration, on_mode, off_mode, color, light_intensity, power_consumption)
+            data = Data(timestamp, username, room, duration, on_mode, off_mode, color, light_intensity, power_consumption)
             session.add(data)
 
         session.commit()
@@ -153,3 +158,7 @@ def gen_datetime(min_year=2015, max_year=datetime.now().year-1):
     years = max_year - min_year + 1
     end = start + timedelta(days=365 * years)
     return start + (end - start) * random.random()
+
+#create_db()
+
+#populate_db()

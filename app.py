@@ -191,14 +191,14 @@ def admin_ranking():
 @app.route('/bridge/packet', methods = ['POST'])
 def bridge_packet():
     request_json = request.get_json()
-    data = Data(request_json['timestamp'], request_json['username'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
+    data = Data(request_json['timestamp'], request_json['username'], request_json['room'], request_json['duration'], request_json['on mode'], request_json['off mode'], request_json['color'], request_json['light intensity'], request_json['power consumption'])
     add_row(data)
     return 'OK', '200 OK'
 
 @app.route('/bridge/state', methods = ['POST'])
 def bridge_state():
     request_json = request.get_json()
-    state = State(request_json['timestamp'], request_json['room'], request_json['color'], request_json['light intensity'], request_json['people in the room'], request_json['auto mode'])
+    state = State(request_json['timestamp'], request_json['username'], request_json['room'], request_json['color'], request_json['light intensity'], request_json['people in the room'], request_json['auto mode'])
     add_row(state)
     return 'OK', '200 OK'
 

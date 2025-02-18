@@ -17,6 +17,6 @@ def compute_future_power_consumption(username: str):
     dict_keys = [data for data in (forecast[['ds', 'yhat']].to_dict())['ds'].values()]
     dict_values = [data for data in (forecast[['ds', 'yhat']].to_dict())['yhat'].values()]
 
-    future_power_consumption = {key: value for key, value in zip(dict_keys, dict_values)}
+    future_power_consumption = {key: (value if value >= 0 else 0) for key, value in zip(dict_keys, dict_values)}
     
     return dict(sorted(future_power_consumption.items()))
